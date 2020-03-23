@@ -128,30 +128,37 @@ describe('Error detail reporter', function() {
     ]);
   });
 
-  it('should report the last breadcrumb before timeout for tests that time out', function() {
+  it('should report the last breadcrumbs before timeout for tests that time out', function() {
     return doWithReporterAndCheck(function(reporter) {
       reporter.gotMessage({ path: ['test1'] }, { type: 'startedBeforeHook' });
-      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'other_breadcrumb_msg', trace: 'trace' });
+      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'other_breadcrumb_msg', trace: 'other_trace' });
       reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'breadcrumb_msg', trace: 'trace' });
       reporter.gotMessage({ path: ['test1'] }, { type: 'timeout' });
-      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'yet_another_breadcrumb_msg', trace: 'trace' });
+      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'yet_another_breadcrumb_msg', trace: 'yet_another_trace' });
       reporter.gotMessage({ path: ['test1'] }, { type: 'finish', result: 'timeout' });
       reporter.done();
     }, [
       /test1:$/,
       '     In before hook: Timed out',
       '',
-      '     Last breadcrumb: breadcrumb_msg',
+      '     Last breadcrumb(s):',
+      '     breadcrumb_msg',
       '     trace',
+      '',
+      '     other_breadcrumb_msg',
+      '     other_trace',
+      '',
       ''
     ]);
   });
 
-  it('should report the last breadcrumb for tests that fail with an uncaught exception', function() {
+  it('should report the last breadcrumbs for tests that fail with an uncaught exception', function() {
     return doWithReporterAndCheck(function(reporter) {
       reporter.gotMessage({ path: ['test1'] }, { type: 'startedBeforeHook' });
-      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'other_breadcrumb_msg', trace: 'trace' });
-      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'breadcrumb_msg', trace: 'trace' });
+      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'first_breadcrumb_msg', trace: 'first_trace' });
+      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'second_breadcrumb_msg', trace: 'second_trace' });
+      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'third_breadcrumb_msg', trace: 'third_trace' });
+      reporter.gotMessage({ path: ['test1'] }, { type: 'breadcrumb', message: 'fourth_breadcrumb_msg', trace: 'fourth_trace' });
       reporter.gotMessage({ path: ['test1'] }, { type: 'error', in: 'uncaught', stack: 'Message\nstack' });
       reporter.gotMessage({ path: ['test1'] }, { type: 'finish', result: 'failure' });
       reporter.done();
@@ -160,8 +167,16 @@ describe('Error detail reporter', function() {
       '     Uncaught error: Message',
       '     stack',
       '',
-      '     Last breadcrumb: breadcrumb_msg',
-      '     trace',
+      '     Last breadcrumb(s):',
+      '     fourth_breadcrumb_msg',
+      '     fourth_trace',
+      '',
+      '     third_breadcrumb_msg',
+      '     third_trace',
+      '',
+      '     second_breadcrumb_msg',
+      '     second_trace',
+      '',
       ''
     ]);
   });
